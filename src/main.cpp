@@ -1,10 +1,13 @@
 #include <SPI.h>
 #include <Ethernet.h>
+#include <avr/wdt.h>
 
 #define konakOtopark 4
 
 int kapaliId, kapaliAcikmi, kapaliDoluMu, bahceId, bahceAcikmi, bahceDoluMu, konakId, konakAcikmi, konakDoluMu;
 
+static unsigned long lastResponseTime = 0;
+static const unsigned long RESPONSE_TIMEOUT = 10000;
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 char server[] = "otoparkapi2.hayrat.dev";
@@ -86,9 +89,11 @@ void makeHTTPRequest() {
     
     Serial.println(F("Bağlantı kapatıldı"));
     client.stop();
+    lastResponseTime = millis(); // Reset timer on success
     
   } else {
     Serial.println(F("Sunucuya bağlanılamadı!"));
+    lastResponseTime = millis(); // Reset timer on failure
   }
 }
 
@@ -137,11 +142,18 @@ void setup() {
   Serial.println(Ethernet.localIP());
   
   delay(1000); // Ağ başlatması için bekle
+  wdt_enable(WDTO_8S);
   
 }
 
 void loop() {
+  wdt_reset();
   // Her 10 saniyede bir istek at
   makeHTTPRequest();
   delay(2000);
+  if (millis() - lastResponseTime > RESPONSE_TIMEOUT) {
+    Serial.println(F("Response timeout, restarting..."));
+    wdt_enable(WDTO_15MS);
+    while (true) {}
+  }
 }
