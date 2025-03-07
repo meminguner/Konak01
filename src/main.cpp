@@ -104,9 +104,9 @@ void setup() {
   }
   // Pin modlarını ayarla
   pinMode(konakOtopark, OUTPUT);
-  digitalWrite(konakOtopark, HIGH); 
-  delay(1000); 
-  digitalWrite(konakOtopark, LOW);
+  // digitalWrite(konakOtopark, HIGH); 
+  // delay(1000); 
+  // digitalWrite(konakOtopark, LOW);
   
 
     Serial.println(F("Ethernet kartı durumu: "));
@@ -148,7 +148,7 @@ void setup() {
 
 void loop() {
   wdt_reset();
-  // Her 10 saniyede bir istek at
+  
   makeHTTPRequest();
   delay(2000);
   if (millis() - lastResponseTime > RESPONSE_TIMEOUT) {
